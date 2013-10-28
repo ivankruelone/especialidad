@@ -80,7 +80,7 @@
    function detalle_d_orden($id_cc)
     {
        
-       $this->db->select('a.costo as costoo,a.*,b.*');
+       $this->db->select('a.id,a.costo as costoo,a.*,b.codigo,b.gramaje,b.susa,b.contenido,b.presenta');
        $this->db->from('especialidad.orden_d a');
        $this->db->join('catalogo.cat_nuevo_general b', 'a.codigo=b.codigo');
        $this->db->where('id_cc',$id_cc);
@@ -406,7 +406,8 @@ $nuevafecha = date ( 'Y-m-d' , $nuevafecha );
             $tabla.="
             <tr>
             <td align=\"center\">".$row->clave."<br /> ".$row->codigo."</td>
-            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
+            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."
+            <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
             <td align=\"left\">".number_format($row->costo,2)."</td>
             <td align=\"center\">".$row->can."</td>
             <td align=\"center\">".$row->canr."</td>
@@ -532,7 +533,8 @@ $nuevafecha = date ( 'Y-m-d' , $nuevafecha );
             $tabla.="
             <tr>
             <td align=\"center\">".$row->clave."</td>
-            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido."".$row->presenta."</td>
+            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido."".$row->presenta."
+            <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
             <td align=\"left\">".number_format($row->costo,2)."</td>
             <td align=\"center\">".$row->can."</td>
             <td align=\"center\">".$row->canr."</td>
@@ -670,10 +672,10 @@ $nuevafecha = date ( 'Y-m-d' , $nuevafecha );
 //////////////////////////////////////////////////////////////////////////////////    
 //////////////////////////////////////////////////////////////////////////////////
 
-function create_member_d($id_cc,$orden,$codigo,$lote,$cad,$can,$canr)
+function create_member_d($id_cc,$orden,$codigo,$lote,$cad,$can,$canr,$costo)
 	{
        
-       $sql = "SELECT a.canp,a.costo,b.clagob  FROM orden_d a, catalogo.cat_nuevo_general b
+       $sql = "SELECT a.canp,a.costo,b.clagob,b.susa,marca_comercial,gramaje,contenido,presenta  FROM orden_d a, catalogo.cat_nuevo_general b
 where b.codigo=$codigo and a.llegan < a.canp and a.id_cc= $orden  and (a.CANP-a.LLEGAN) >= $can
 group by a.id_cc";
          $query = $this->db->query($sql);
@@ -686,8 +688,8 @@ group by a.id_cc";
         
         $row= $query->row();
         $cans=$row->canp;    
-        $costo=$row->costo; 
-        $clave=$row->clagob; 
+        $clave=$row->clagob;
+        $descri=trim($row->marca_comercial).' '.trim($row->gramaje).' '.trim($row->contenido).' '.trim($row->presenta); 
         
         
         $sql1 = "SELECT * FROM compra_d where id_cc= ? and clave= ? and lote= ? ";
@@ -707,7 +709,8 @@ group by a.id_cc";
             'canp'=> $cans,
             'costo'=> $costo,
             'canr'=> $canr,
-            'codigo'=>$codigo
+            'codigo'=>$codigo,
+            'descri'=>$descri
             						
 		);
 		$insert = $this->db->insert('compra_d', $new_member_insert_data);
@@ -759,7 +762,7 @@ $sql0 = "SELECT * FROM compra_d where id_cc= ? and aplica='NO' ";
         //////////////////////////////////////////////////////////////////inventario_d
         // clave, can, lote, caducidad
         
-        $this->__actualiza_inventario_d($row0->id,$row0->clave, $row0->can,$row0->canr, $row0->lote, $row0->caducidad, $row0->codigo);
+        $this->__actualiza_inventario_d($row0->id,$row0->clave, $row0->can,$row0->canr, $row0->lote, $row0->caducidad, $row0->codigo, $row0->descri);
         //////////////////////////////////////////////////////////////////compraped
         
         $this->__actualiza_compraped($orden, $row0->clave, $row0->can,$almacen,$row0->codigo);
@@ -810,7 +813,7 @@ private function __cierra_compra_c($id)
 
 }
 
-private function __actualiza_inventario_d($id_d,$clave, $cantidad,$cantidadr, $lote, $caducidad,$codigo)
+private function __actualiza_inventario_d($id_d,$clave, $cantidad,$cantidadr, $lote, $caducidad,$codigo,$descri)
 {
         $sql2 = "SELECT * FROM inventario_d where clave= ? and lote = ? ";
            $query2 = $this->db->query($sql2,array($clave,$lote));
@@ -823,6 +826,7 @@ private function __actualiza_inventario_d($id_d,$clave, $cantidad,$cantidadr, $l
                    'lote' => $lote,
                    'caducidad' => $caducidad,
                    'codigo' => $codigo,
+                   'descri' => $descri,
 			       'cantidad' => $cantidad+$cantidadr
 		           );
 		
@@ -879,7 +883,7 @@ function imprime_detalle_orden($id)
         
 $text1='Le pedimos la caducidad minima de los productos de 12 meses';
 $text2='Favor de incluir el numero de pedido en la factura <BR /><BR />
-LA VIGENCIA DE LOS PEDIDOS SER&Agrave; DE 7 DIAS NATURALES A PARTIR DE LA FECHA GENERADA.DESPUES DE ESTA FECHA NO SE PODR&Agrave; RECIBIR NINGUN PEDIDO VENCIDO EN LOS ALMACENES.
+LA VIGENCIA DE LOS PEDIDOS SER&Agrave; DE 10 DIAS NATURALES A PARTIR DE LA FECHA GENERADA.DESPUES DE ESTA FECHA NO SE PODR&Agrave; RECIBIR NINGUN PEDIDO VENCIDO EN LOS ALMACENES.
 ';
         $num=0;$tocan=0;$impo=0;
         $sql = "SELECT a.*,b.*
@@ -1008,7 +1012,8 @@ function imprime_detalle($id)
             <tr>
             <td width= \"70\" align=\"left\">".$row->clave."</td>
             <td width= \"100\" align=\"left\">".$row->codigo."</td>
-            <td width= \"450\" align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
+            <td width= \"450\" align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."
+            <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
             <td width= \"80\" align=\"left\">".$row->lote."</td>
             <td width= \"80\" align=\"right\">".$row->caducidad."</td>
             <td width= \"60\" align=\"right\">".$row->can."</td>

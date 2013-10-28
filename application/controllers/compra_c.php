@@ -183,7 +183,7 @@ class Compra_c extends CI_Controller {
     {
         $data = array('canp' => $this->input->post('valor'));
         $this->db->where('id', $this->input->post('id'));
-        $this->db->update('orden_d', $data);
+        $this->db->update('especialidad.orden_d', $data);
     }
 ///////////////////////////////////////////////////////////
 	public function tabla_pendiente()
@@ -280,8 +280,9 @@ class Compra_c extends CI_Controller {
     $cad= $this->input->post('cad');
     $can= $this->input->post('can');
     $canr= $this->input->post('canr');
+    $costo= $this->input->post('costo');
     $this->load->model('compra_model');
-    $this->compra_model->create_member_d($id_cc,$orden,$codigo,$lote,$cad,$can,$canr,$almacen);
+    $this->compra_model->create_member_d($id_cc,$orden,$codigo,$lote,$cad,$can,$canr,$almacen,$costo);
     redirect('compra_c/detalle'."/".$id_cc."/".$almacen);
     
     }

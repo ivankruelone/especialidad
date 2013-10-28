@@ -73,14 +73,26 @@ class Pedido extends CI_Controller {
     
     }
 //////////////////////////////////////////////////////
+//////////////////////////////////////////////
+function busca_producto()
+	{
+	
+    $clave=$this->input->post('clave');
+    $this->load->model('catalogo_model');
+    echo $this->catalogo_model->busca_produc($clave); 
+       
+    }
+//////////////////////////////////////////////
+//////////////////////////////////////////////
 //////////////////////////////////////////////////////
 function insert_d()
 	{
 	$id_cc= $this->input->post('id_cc');
-    $clave= $this->input->post('clave');
+    $codigo= $this->input->post('codigo');
+    
     $can= $this->input->post('can');
     $this->load->model('pedido_model');
-    $this->pedido_model->create_member_d($id_cc,$clave,$can);
+    $this->pedido_model->create_member_d($id_cc,$codigo,$can);
     redirect('pedido/detalle'."/".$id_cc);
     }
 //////////////////////////////////////////////////////

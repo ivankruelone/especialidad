@@ -24,13 +24,13 @@
   
   <table>
  <tr>
-	<td>Clave: </td>
+	<td>Marca: </td>
 	<td><?php echo form_input($data_clave, "", 'required');?><span id="mensaje"></span></td>
 </tr>
 <tr>
-	<td>Lote: </td>
+	<td>Producto: </td>
 	<td align="left">
-    <select name="lotex" id="lotex">
+    <select name="id_inv" id="id_inv">
       
     </select>
 
@@ -81,7 +81,7 @@
     $('#clave').blur(function(){
      var clave = $('#clave').attr("value"); 
      var id_cc = $('#id_cc').attr("value"); 
-  
+ // alert(clave);
   if(clave > ' '){
             $.post("<?php echo site_url();?>/surtido/busca_lote/", { clave: clave, id_cc: id_cc }, function(data){
                 if(data == '0'){
@@ -89,8 +89,8 @@
                     $('#clave').val('').focus();
                 }else{
                 
-            $("#lotex").html(data);
-            $('#lotex').focus();
+            $("#id_inv").html(data);
+            $('#id_inv').focus();
             }
              });
              }
@@ -99,11 +99,12 @@
       $('#can').blur(function(){
      var can = $('#can').attr("value"); 
      var clave = $('#clave').attr("value");
-     var lotex = $('#lotex').attr("value");
-  
+     var id_inv = $('#id_inv').attr("value");
+     var id_cc = $('#id_cc').attr("value"); 
+
   if(can > 0){
 ///////////////////////////////
-            $.post("<?php echo site_url();?>/surtido/busca_can/", { clave : clave, lotex : lotex, can: can  }, function(data1){
+            $.post("<?php echo site_url();?>/surtido/busca_can/", {id_inv : id_inv, can: can  }, function(data1){
             if(data1 == '0'){
             alert("La cantidad capturada es mayor a la existente");
             $('#can').val('').focus();
@@ -111,7 +112,7 @@
             }
             });
 ///////////////////////////////            
-            $.post("<?php echo site_url();?>/surtido/busca_canped/", { clave : clave, can: can  }, function(data0){
+            $.post("<?php echo site_url();?>/surtido/busca_canped/", { id_inv : id_inv, can: can, id_cc: id_inv  }, function(data0){
             if(data0 == '0'){
             alert("La cantidad capturada es mayor a la solicitada");
             }
@@ -129,7 +130,8 @@
         
         var clave = $('#clave').attr("value").length;
         var can = $('#can').attr("value").length;
-    	  if(clave >0 && can>0 ){
+        var id_inv = $('#id_inv').attr("value");
+          if(clave >0 && can>0 ){
     	    if(confirm("Seguro que los datos son correctos?")){
     	    return true;
     	    }else{

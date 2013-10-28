@@ -52,10 +52,8 @@ class Surtido extends CI_Controller {
        $data['id_cc'] =$id_cc;
        $data['contenido'] = "surtido/surtido_d_form";
        $data['tabla'] = $this->surtido_model->detalle_d($id_cc);
-       
-			
-		$this->load->view('header');
-		$this->load->view('main', $data);
+       $this->load->view('header');
+	   $this->load->view('main', $data);
 	}
 
 //////////////////////////////////////////////////////
@@ -69,36 +67,27 @@ function busca_lote()
 function busca_can()
 	{
 	$this->load->model('inventario_model');
-    echo $this->inventario_model->busca_cans($this->input->post('clave'),$this->input->post('lotex'),$this->input->post('can'));
+    echo $this->inventario_model->busca_cans($this->input->post('id_inv'),$this->input->post('can'));
     
     }
 /////////////////////////// 
 function busca_canped()
 	{
 	$this->load->model('pedido_model');
-    echo $this->pedido_model->busca_canp($this->input->post('clave'),$this->input->post('can'));
+    echo $this->pedido_model->busca_canp($this->input->post('id_inv'),$this->input->post('can'),$this->input->post('id_cc'));
     }
 
 //////////////////////////////////////////////////////
  function insert_d()
 	{
-	$this->load->model('inventario_model');
-    $trae = $this->inventario_model->trae_datos($this->input->post('clave'),$this->input->post('lotex'));
-    $row = $trae->row();
-    $cad=$row->caducidad;
-    
-    $this->load->model('pedido_model');
-    $trae1 = $this->pedido_model->trae_datos($this->input->post('id_cc'),$this->input->post('clave'));
-    $row1 = $trae1->row();
-	$lin=$row1->lin;
-    $vta=$row1->vta;
+	
     
     $id_cc= $this->input->post('id_cc');
     $clave= $this->input->post('clave');
-    $lote= $this->input->post('lotex');
+    $id_inv= $this->input->post('id_inv');
     $can= $this->input->post('can');
     $this->load->model('surtido_model');
-    $this->surtido_model->create_member_d($id_cc,$clave,$lote,$cad,$can,$lin,$vta);
+    $this->surtido_model->create_member_d($id_cc,$clave,$id_inv,$can);
     redirect('surtido/detalle'."/".$id_cc);
     
     }
@@ -191,23 +180,23 @@ function busca_canped()
             <table>
             
             <tr>
-            <td colspan=\"4\" align=\"right\">Fecha de impresion.:".date('Y-m-d H:s:i')."</td>
+            <td colspan=\"8\" align=\"right\">Fecha de impresion.:".date('Y-m-d H:s:i')."</td>
             </tr>
             
             <tr>
-            <td colspan=\"4\" align=\"center\">PEDIDO DE MERCANCIA</td>
+            <td colspan=\"8\" align=\"center\">PEDIDO DE MERCANCIA</td>
             </tr>
             
             <tr>
-            <td colspan=\"4\"> SUCURSAL.:  $row->suc - $row->sucx</td>   
+            <td colspan=\"8\"> SUCURSAL.:  $row->suc - $row->sucx</td>   
             </tr>
             
             <tr>
-            <td colspan=\"4\" align=\"right\">  FOLIO DE PEDIDO: $id_cc</td>
+            <td colspan=\"8\" align=\"right\">  FOLIO DE PEDIDO: $id_cc</td>
             </tr>
             
             <tr> 
-            <td colspan=\"4\">  FECHA DE CAPTURA : $row->fechasur</td>
+            <td colspan=\"8\">  FECHA DE CAPTURA : $row->fechasur</td>
             </tr>
             
             </table>";

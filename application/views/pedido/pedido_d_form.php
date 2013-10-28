@@ -11,8 +11,8 @@
               'name'        => 'clave',
               'id'          => 'clave',
               'value'       => '',
-              'maxlength'   => '10',
-              'size'        => '10',
+              'maxlength'   => '20',
+              'size'        => '20',
               'autofocus'   => 'autofocus'
             );
     $data_cantidad = array(
@@ -27,8 +27,15 @@
   
   <table>
  <tr>
-	<td>Clave: </td>
+	<td>Marca: </td>
 	<td><?php echo form_input($data_clave, "", 'required');?><span id="mensaje"></span></td>
+</tr>
+<tr>
+	<td align="left" ><font size="+1">Producto: </font></td>
+    <td align="left">
+    <select name="codigo" id="codigo">
+    </select>
+    </td>
 </tr>
 <tr>
 	<td>Cantidad: </td>
@@ -54,13 +61,33 @@
     
     
     $(document).ready(function(){
+///////////////////////////////////////////////////////////////////////            
+        function enter2tab(e) { 
+       if (e.keyCode == 13) { 
+           cb = parseInt($(this).attr('tabindex')); 
+     
+           if ($(':input[tabindex=\'' + (cb + 1) + '\']') != null) { 
+               $(':input[tabindex=\'' + (cb + 1) + '\']').focus(); 
+               $(':input[tabindex=\'' + (cb + 1) + '\']').select(); 
+               e.preventDefault(); 
+     
+               return false; 
+           } 
+       } 
+   }
+///////////////////////////////////////////////////////////////////////    
     
-    $('#clave').blur(function(){
-            var clave = $('#clave').attr("value"); 
-        
-    });
-    
+    $('#clave').change(function(){
+    clave = $('#clave').attr("value"); 
+ if(clave > '  '){
+  $.post("<?php echo site_url();?>/pedido/busca_producto/", { clave: clave}, function(data) {
+  $("#codigo").html(data);
 
+  }
+  );
+   }
+   
+   }); 
 
     $('#pedido_d_form').submit(function() {
         

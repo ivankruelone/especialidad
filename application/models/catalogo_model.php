@@ -62,7 +62,8 @@ function trae_datos($clave){
 	{
 		$sql = "SELECT suc,nombre FROM  catalogo.sucursal where suc=175 or suc=176 or suc=177 or suc=178 or 
         suc=179 or suc=180 or suc=181 or suc=103 or suc=108 or suc=107 or suc=141 or suc=105 or suc=102 or 
-        suc=109 OR SUC=17000 OR SUC=14000 OR SUC=16000 or suc=106 or suc=187 order by nombre";
+        suc=109 OR SUC=17000 OR SUC=14000 OR SUC=16000 or suc=106 or suc=187 or suc=112 or suc=114 or suc=127
+        or suc=115 or suc=3266 order by nombre";
         $query = $this->db->query($sql);
         
         $suc = array();
@@ -79,7 +80,10 @@ function trae_datos($clave){
 ///////////////////////////////////////////////////////////////// 
    function busca_sucursal_dev()
 	{
-		$sql = "SELECT suc,nombre FROM  catalogo.sucursal where suc=99990 or suc=100 or suc=177 or suc=178 or suc=179 or suc=180 or suc=181 or suc=103 or suc=108 or suc=107 or suc=141 or suc=105 or suc=102 or suc=109 order by suc";
+		$sql = "SELECT suc,nombre FROM  catalogo.sucursal where suc=175 or suc=176 or suc=177 or suc=178 or 
+        suc=179 or suc=180 or suc=181 or suc=103 or suc=108 or suc=107 or suc=141 or suc=105 or suc=102 or 
+        suc=109 OR SUC=17000 OR SUC=14000 OR SUC=16000 or suc=106 or suc=187 or suc=112 or suc=114 or suc=127
+        or suc=115 or suc=3266 order by suc";
         
         $query = $this->db->query($sql);
         
@@ -135,7 +139,7 @@ function trae_datos($clave){
         $var[0] = "Selecciona un Proveedor";
         
         foreach($query->result() as $row){
-            $var[$row->prov] = $row->corto;
+            $var[$row->prov] = $row->razo;
         }
         
         
@@ -156,7 +160,20 @@ function trae_datos($clave){
 	} 
   /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////     
-
+   function busca_produc($clave)
+	{
+		 $id_user= $this->session->userdata('id');
+        $sql = "SELECT codigo,concat(trim(marca_comercial),' ',trim(gramaje),' ',trim(contenido),' ',trim(presenta))as completo FROM catalogo.cat_nuevo_general where marca_comercial like '%$clave%' ";
+        $query = $this->db->query($sql);
+        $tabla="";
+        foreach($query->result() as $row)
+        {
+            $tabla.="
+            <option value =\"".$row->codigo."\">".$row->completo."</option>
+            ";
+        }
+        return $tabla;
+	} 
   /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////     
 }

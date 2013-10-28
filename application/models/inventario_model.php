@@ -179,23 +179,21 @@
 function busca_lotess($clave,$id_cc)
 	{
 		
-        $sql = "SELECT lote, caducidad,cantidad FROM inventario_d where clave= ? and cantidad>0";
+        $sql = "SELECT id,clave,lote, caducidad,cantidad,descri FROM inventario_d where descri like '%$clave%' and cantidad>0";
+        $query = $this->db->query($sql);
         
-        $query = $this->db->query($sql,array($clave));
         
-        $sql1 = "SELECT * FROM pedido_d where clave= ? and id_cc= ?";
-        $query1 = $this->db->query($sql1,array($clave,$id_cc));
-        if($query->num_rows()== 0 || $query1->num_rows() == 0){
+        if($query->num_rows()== 0){
             $tabla = 0;
         }else{
-        
-        $tabla = "<option value=\"-\">Selecciona un Lote</option>";
-        
+        $tabla = "<option value=\"0\">Selecciona un Descripcion</option>";
         foreach($query->result() as $row)
         {
+        //$sql1 = "SELECT * FROM pedido_d where clave=$row->clave and id_cc= ?";
+        //$query1 = $this->db->query($sql1,array($id_cc));    
 
             $tabla.="
-            <option value =\"".$row->lote."\">".$row->lote." - $row->cantidad Pzas</option>
+            <option value =\"".$row->id."\">".$row->descri." - $row->cantidad Pzas</option>
             ";
         }
         }
@@ -212,11 +210,11 @@ function trae_datos($clave,$lote){
     }
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-function busca_cans($clave,$lotex,$can)
+function busca_cans($id_inv,$can)
 	{
 		$sql = "SELECT * FROM inventario_d a 
-        where a.clave= ? and a.lote= ? and a.cantidad>= ? ";
-        $query = $this->db->query($sql,array($clave,$lotex,$can));
+        where a.id=$id_inv and a.cantidad>= $can ";
+        $query = $this->db->query($sql);
         return $query->num_rows(); 
 	}
 /////////////////////////////////////////////////////////////////////////////////

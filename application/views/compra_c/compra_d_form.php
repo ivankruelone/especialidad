@@ -44,7 +44,13 @@
               'maxlength'   => '7',
               'size'        => '7'
             );
-
+ $data_costo= array(
+              'name'        => 'costo',
+              'id'          => 'costo',
+              'value'       => '',
+              'maxlength'   => '7',
+              'size'        => '7'
+            );
   ?>
   
   <table>
@@ -68,6 +74,10 @@
 <tr>
 	<td>Caducidad: </td>
 	<td><?php echo form_input($data_caducidad, "", 'required');?>A&Ntilde;O-MES-DIA<span id="mensaje"></span></td>
+</tr>
+<tr>
+	<td>Costo: </td>
+	<td><?php echo form_input($data_costo, "", 'required');?><span id="mensaje"></span></td>
 </tr>
 	<td colspan="2"><?php echo form_submit('envio', 'grabar producto');?></td>
 </tr>

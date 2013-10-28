@@ -57,12 +57,12 @@
     {
        $this->db->select('a.*,sum(a.cans)as cans,b.*');
        $this->db->from('especialidad.surtido_d a');
-       $this->db->join('catalogo.cat_nuevo_general_clagob b', 'a.clave=b.clagob');
+       $this->db->join('catalogo.cat_nuevo_general b', 'a.codigo=b.codigo');
        $this->db->where('a.id_ped',$id_cc);
        $this->db->group_by('a.clave');
        $this->db->order_by('a.id');
        $query = $this->db->get();
-       
+       //echo $this->db->last_query();
         $tabla= "
         <table>
         <thead>
@@ -72,6 +72,7 @@
         <th align=\"right\">Lote</th>
         <th align=\"right\">Caducidad</th>
         <th align=\"right\">Surtido</th>
+        <th align=\"right\"></th>
         </tr>
         </thead>
         <tbody>
@@ -85,7 +86,8 @@
             $tabla.="
             <tr>
             <td align=\"center\">".$row->clave."</td>
-            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
+            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."
+            <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
             </tr>
             ";
         $totcan= $totcan + $row->cans;
@@ -145,24 +147,28 @@
 //////////////////////////////////////////////////////////////////////////////////    
 //////////////////////////////////////////////////////////////////////////////////
 
-function create_member_d($id_cc,$clave,$lote,$cad,$can,$vta,$lin)
+function create_member_d($id_cc,$clave,$id_inv,$can)
 	{
-        $sql1 = "SELECT * FROM surtido_d where id_ped= ? and clave= ? and lote= ? ";
-       $query1 = $this->db->query($sql1,array($id_cc,$clave,$lote));
+       $s="select *from inventario_d where id=$id_inv";
        
-       if($query1->num_rows()== 0){
+       $q= $this->db->query($s);
+       if($q->num_rows()== 1){
+       $r=$q->row();
         
+       $sql1 = "SELECT * FROM surtido_d where id_ped= ? and clave= ? and lote= ? ";
+       $query1 = $this->db->query($sql1,array($id_cc,$r->clave,$r->lote)); 
     //////////////////////////////////////////////inserta los datos en la base de datos
-    	
+    if($query1->num_rows()==0){ 
         $new_member_insert_data = array(
 			'id_ped' => $id_cc,
-			'clave' => $clave,
-			'lote' =>  str_replace(' ', '',strtoupper(trim($lote))),
-            'cad' => $cad,
+			'clave' => $r->clave,
+			'lote' =>  str_replace(' ', '',strtoupper(trim($r->lote))),
+            'cad' => $r->caducidad,
 			'cans' => $can,
+            'codigo'=>$r->codigo,
 			'fecha'=> date('Y-m-d H:s:i'),
-            'vta'=> $vta,
-            'lin'=> $lin
+            'vta'=> 0,
+            'lin'=> 1
             						
 		);
 		
@@ -170,7 +176,7 @@ function create_member_d($id_cc,$clave,$lote,$cad,$can,$vta,$lin)
 		
 	
 
-}
+}}
  return FALSE;
 }
 //////////////////////////////////////////////////////////////////////////////////    
@@ -220,13 +226,13 @@ $data = array(
 //////////////////////////////////////////////////////////////////////////////////
 private function __cierra_surtido_d($id_detalle,$clave)
 {
- $sql = "SELECT * FROM catalogo.cat_nuevo_general_clagob where clagob= ? ";
+ $sql = "SELECT * FROM catalogo.cat_nuevo_general_prv a where clagob= ? and preferencia='S' group by clagob";
         $query = $this->db->query($sql,array($clave));
         if($query->num_rows() > 0){
             $row= $query->row();
             
             $data = array(
-			'vta' => $row->pub,
+			'vta' => $row->costo,
 			'fecha'=> date('Y-m-d H:s:i'),
             'lin' => 1,
             'aplica' => 'SI'
@@ -242,6 +248,7 @@ private function __actualiza_inventario_d($clave,$lote,$cans)
 {
 $sql2 = "SELECT * FROM inventario_d where clave= ? and lote = ? ";
            $query2 = $this->db->query($sql2,array($clave,$lote));
+           
            if($query2->num_rows()== 1){
            $row2= $query2->row();
            $existencia=$row2->cantidad; 
@@ -369,11 +376,11 @@ function imprime_detalle($id)
         $tocan=0;
         $num=0;
         $sql = "SELECT a.*,b.* from surtido_d a
-        left join catalogo.cat_nuevo_general_clagob b on a.clave=b.clagob
-        where a.id_ped= ? and a.aplica='SI'  group by a.clave order by clave";
+        left join catalogo.cat_nuevo_general b on a.codigo=b.codigo
+        where a.id_ped= ? and a.aplica='SI'  order by clave";
         $query = $this->db->query($sql,array($id));
         
-        $tabla= "
+        $tabla="
         <table>
         <thead>
         
@@ -382,17 +389,18 @@ function imprime_detalle($id)
         </tr>
         
         <tr>
-        <th width=\"70\"><strong>Clave</strong></th>
+        <th width=\"50\"><strong>Clave</strong></th>
+        <th width=\"50\"><strong>Codigo</strong></th>
         <th width=\"200\"><strong>Sustancia Activa</strong></th>
-        <th width=\"80\" align=\"right\"><strong>Cantidad</strong></th>
         <th width=\"80\" align=\"center\"><strong>Lote</strong></th>
         <th width=\"80\" align=\"right\"><strong>Caducidad</strong></th>
-        <th width=\"50\" align=\"right\"><strong>Precio</strong></th>
+        <th width=\"50\" align=\"right\"><strong>Piezas</strong></th>
+        <th width=\"70\" align=\"right\"><strong>Precio</strong></th>
         <th width=\"80\" align=\"right\"><strong>Importe</strong></th>
         </tr>
         
         <tr>
-        <th colspan=\"8\">______________________________________________________________________________________________</th>
+        <th colspan=\"8\">__________________________________________________________________________________________________</th>
         </tr>
         
         </thead>
@@ -406,13 +414,17 @@ function imprime_detalle($id)
             $importe=$row->cans*$row->vta;  
             $tabla.="
             <tr>
-            <td width=\"70\" align=\"left\">".$row->clave."</td>
-            <td width=\"200\" align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
-            <td width=\"80\" align=\"right\">".$row->cans."</td>
+            <td width=\"50\" align=\"left\">".$row->clave."</td>
+            <td width=\"50\" align=\"left\">".$row->codigo."</td>
+            <td width=\"200\" align=\"left\">".trim($row->marca_comercial)." ".trim($row->gramaje)." ".trim($row->contenido)." ".trim($row->presenta)."</td>
             <td width=\"80\" align=\"center\">".$row->lote."</td>
             <td width=\"80\" align=\"right\">".$row->cad."</td>
-            <td width=\"50\" align=\"right\">".number_format($row->vta,2)."</td>
+            <td width=\"50\" align=\"right\">".$row->cans."</td>
+            <td width=\"70\" align=\"right\">".number_format($row->vta,2)."</td>
             <td width=\"80\" align=\"right\">".number_format($importe,2)."</td>
+            </tr>
+            <tr>
+            <td colspan=\"8\"></td>
             </tr>
             ";
         $tocan=$tocan+$row->cans;
@@ -421,29 +433,34 @@ function imprime_detalle($id)
         }
         
         $tabla.="
+        </tbody>
+        <tfoot>
         <tr>
-        <th colspan=\"8\">______________________________________________________________________________________________</th>
+        
+        <td colspan=\"8\">_________________________________________________________________________________________________</td>
         </tr>
         
         <tr>
-        <td width=\"270\" align=\"left\">Total de productos.: $num</td>
-        <td width=\"80\" align=\"right\">".$tocan."</td>
-        <td width=\"290\" align=\"right\">".number_format($timporte,2)."</td>
+        <td colspan=\"5\" align=\"left\">Productos con diferente lote.: $num</td>
+        <td width=\"50\" align=\"right\">".$tocan."</td>
+        <td width=\"150\" align=\"right\">".number_format($timporte,2)."<br /><br /><br /><br /><br /></td>
         
         </tr>
         
          <tr>
-        <th colspan=\"2\" align=\"center\"><br /><br /><br />ENVIADO<br /><br /><br /></th>
-        <th colspan=\"2\" align=\"center\"><br /><br /><br />RECIBIDO<br /><br /><br /></th>
+        <td colspan=\"4\" width=\"330\"align=\"center\">ENVIADO<br /><br /><br /><br /></td>
+        <td coslpan=\"4\" width=\"330\" align=\"center\">RECIBIDO<br /><br /><br /><br /></td>
         </tr>
         
         <tr>
-        <th colspan=\"2\" align=\"center\">______________________________________</th>
-        <th colspan=\"2\" align=\"center\">______________________________________</th>
+        <td coslpan=\"4\" width=\"330\" align=\"center\">______________________________________<br /><br /><br /><br /></td>
+        <td coslpan=\"4\" width=\"330\" align=\"center\">______________________________________<br /><br /><br /><br /></td>
         </tr>
-        </tbody>
+        </tfoot>
         </table>";
         //$tabla.=$this->imprime_detalle_negados($id);
+        //echo $tabla;
+        //die();
         return $tabla;
         
     }
@@ -511,17 +528,20 @@ function imprime_detalle_negados($id)
         }
         
         $tabla.="
+        </tbody>
+        <tfoot>
         <tr>
-        <th colspan=\"6\">__________________________________________________________________________________________</th>
+        <td colspan=\"6\">__________________________________________________________________________________________</td>
         </tr>
         
         <tr>
         <td width=\"370\" align=\"left\">Productos Negados.: $num</td>
         <td width=\"80\" align=\"right\">".$tocan."</td>
         </tr>
+        </tfoot>
         
-        </tbody>
         </table>";
+        echo $tabla;
         
         return $tabla;
         

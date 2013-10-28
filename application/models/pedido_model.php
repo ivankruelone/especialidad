@@ -52,10 +52,11 @@
     function detalle_d($id_cc)
     {
         
-        $this->db->select('a.*, b.*');
+        $this->db->select('a.*, b.susa,b.gramaje,b.contenido,b.presenta,b.marca_comercial');
         $this->db->from('pedido_d a');
-        $this->db->join('catalogo.cat_nuevo_general  b','a.clave=b.clagob');
+        $this->db->join('catalogo.cat_nuevo_general  b','a.codigo=b.codigo');
         $this->db->where('id_cc',$id_cc);
+        $this->db->where('a.tipo',0);
         $this->db->group_by('clagob');
         $this->db->order_by('a.id desc');
         $query = $this->db->get();
@@ -81,7 +82,9 @@
             <tr>
         <td align=\"center\">$row->clave</td>
         
-        <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
+        <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."
+        <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td></td>
+        
         <td align=\"right\">$row->canp</td>
         <td align=\"right\">$l1</td>
         </tr>
@@ -203,9 +206,9 @@
        
        $this->db->select('a.*,b.* ');
        $this->db->from('especialidad.pedido_d a');
-       $this->db->join('catalogo.cat_nuevo_general b', 'a.clave=b.clagob', 'LEFT');
+       $this->db->join('catalogo.cat_nuevo_general b', 'a.codigo=b.codigo', 'LEFT');
        $this->db->where('id_cc',$id_cc);
-       $this->db->where('tipo',1);
+       $this->db->where('a.tipo',1);
        $this->db->group_by('a.clave');
        $query = $this->db->get();
        
@@ -218,7 +221,8 @@
         </tr>
         
         <tr>
-        <th>Clave</th>
+         <th>Clave</th>
+        <th>Codigo</th>
         <th>Sustancia Activa</th>
         <th>Cantidad</th>
         </tr>
@@ -234,7 +238,9 @@
             $tabla.="
             <tr>
             <td align=\"center\">".$row->clave."</td>
-            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
+            <td align=\"center\">".$row->codigo."</td>
+            <td align=\"left\">".$row->susa." ".$row->gramaje." ".$row->contenido." ".$row->presenta." 
+            <br />".$row->marca_comercial." ".$row->gramaje." ".$row->contenido." ".$row->presenta."</td>
             <td align=\"center\">".$row->canp."</td>
             </tr>
             ";
@@ -383,10 +389,12 @@ function imprime_detalle_e($id)
     {
         $tocan=0;
         $num=0;
-        $sql = "SELECT a.*,b.susa1,c.lote from pedido_d a
-        left join catalogo.cat_catalo b on a.clave=b.claves and persona='ES'
+        $sql = "SELECT a.*,b.susa,c.lote,b.gramaje,b.contenido,b.presenta from pedido_d a
+        left join catalogo.cat_nuevo_general b on a.clave=b.clagob and esp='E'
         left join inventario_d_clave c on a.clave=c.clave
         where a.id_cc= ? and a.tipo=1 and c.cantidad>0  order by clave";
+        
+        
         $query = $this->db->query($sql,array($id));
         
         $tabla= "
@@ -467,11 +475,13 @@ function trae_datos($id_cc,$clave){
     }
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-function busca_canp($clave,$can)
+function busca_canp($id_inv,$can,$id_cc)
 	{
-		$sql = "SELECT *from pedido_d  
-        where clave= ? and canp >= ? ";
-        $query = $this->db->query($sql,array($clave,$can));
+		$sql = "SELECT *
+from inventario_d a
+left join  pedido_d b on b.clave=a.clave
+where  b.id_cc=$id_cc a.id=$id_inv and canp>=$can ";
+        $query = $this->db->query($sql);
         return $query->num_rows(); 
 	}
 
@@ -504,16 +514,17 @@ function create_member_c($suc)
 //////////////////////////////////////////////////////////////////////////////////    
 //////////////////////////////////////////////////////////////////////////////////
 
-function create_member_d($id_cc,$clave,$can)
+function create_member_d($id_cc,$codigo,$can)
 	{
-        
-      $sql = "SELECT * FROM catalogo.cat_nuevo_general where clagob= ? ";
-        $query = $this->db->query($sql,array($clave));
+      
+      $sql = "SELECT * FROM catalogo.cat_nuevo_general where codigo= ? ";
+        $query = $this->db->query($sql,array($codigo));
         if($query->num_rows() > 0){
         $row= $query->row();
-        $vta=$row->pub; 
+        $vta=0;
         $lin=1;
-        
+        $clave=$row->clagob;
+       
         $sql1 = "SELECT * FROM pedido_d where id_cc= ? and clave= ? and tipo<>4 ";
        $query1 = $this->db->query($sql1,array($id_cc,$clave));
        
@@ -525,8 +536,10 @@ function create_member_d($id_cc,$clave,$can)
 			'id_cc' => $id_cc,
 			'clave' => $clave,
 			'fecha'=> date('Y-m-d H:s:i'),
+            'codigo'=>$codigo,
             'vta' => $vta,
             'lin' => $lin,
+            'tipo'=> 0,
             'canp'=> $can
             						
 		);
@@ -569,8 +582,6 @@ $data = array(
 		$this->db->where('id', $id);
         $this->db->where('tipo', 0);
         $this->db->update('pedido_c', $data); 
-
-
 $data1 = array(
 			'tipo' => 1,
 			'fecha'=> date('Y-m-d H:s:i')
